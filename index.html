@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Theatre Seating System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff69b4, #8a2be2);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+            backdrop-filter: blur(8px);
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        button,
+        input[type="submit"] {
+            background: #ff69b4;
+            border: none;
+            padding: 10px 20px;
+            margin: 10px 5px;
+            border-radius: 10px;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover,
+        input[type="submit"]:hover {
+            background: #c71585;
+        }
+
+        input,
+        select {
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            margin: 5px 0;
+            width: 100%;
+        }
+
+        .seating-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .seat {
+            background-color: #fff;
+            color: #333;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .seat.booked {
+            background-color: #8a2be2;
+            color: #fff;
+            cursor: not-allowed;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .message {
+            font-size: 1.1rem;
+            margin-top: 10px;
+        }
+
+        .payment-box {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        #chatbot-button {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+        }
+
+        #chatbot {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 15px;
+            padding: 1rem;
+            color: #fff;
+            display: none;
+            width: 250px;
+        }
+
+        #chatbot h4 {
+            margin-top: 0;
+        }
+
+        #chatbot ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        #chatbot ul li {
+            cursor: pointer;
+            margin-bottom: 10px;
+            padding: 5px;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Welcome to DreamScreen Theatre</h1>
+        <p>Book your movie seats below:</p>
+
+        <div id="auth-container">
+            <div id="register-form">
+                <h3>Register</h3>
+                <input id="reg-username" placeholder="Username" />
+                <input id="reg-password" type="password" placeholder="Password" />
+                <input type="submit" value="Register" onclick="register()" />
+                 <p>Already have an account? <button onclick="toggleAuthForms()">Login</button></p>
+            </div>
+            <div id="login-form">
+                <h3>Login</h3>
+                <input id="login-username" placeholder="Username" />
+                <input id="login-password" type="password" placeholder="Password" />
+                <input type="submit" value="Login" onclick="login()" />
+                 <p>No account? <button onclick="toggleAuthForms()">Register</button></p>
+            </div>
+        </div>
+
+        <div id="app-container" class="hidden">
+            <div class="seating-grid" id="seat-grid"></div>
+            <br>
+            <input id="row" type="number" placeholder="Enter Row (1-5)" min="1" max="5" />
+            <input id="col" type="number" placeholder="Enter Column (1-7)" min="1" max="7" />
+            <br>
+            <button onclick="bookSeat()">Book Seat</button>
+            <button onclick="cancelSeat()">Cancel Booking</button>
+
+            <div class="payment-box hidden" id="payment-box">
+                <h4>💳 Confirm Payment to Book</h4>
+                <button onclick="confirmPayment()">Confirm Payment</button>
+            </div>
+
+            <p class="message" id="message-box"></p>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <button id="chatbot-button" onclick="toggleChatbot()">
+        <img src="https://em-content.zobj.net/thumbs/120/apple/354/woman-gesturing-ok_1f646-200d-2640-fe0f.png"
+            width="50" alt="Achin the chatbot">
+    </button>
+
+    <div id="chatbot">
+        <h4>🤖 Meet Achin</h4>
+        <ul>
+            <li onclick="chatResponse('seats')">Which seats are booked?</li>
+            <li onclick="chatResponse('available')">Which seats are available?</li>
+            <li onclick="chatResponse('movies')">Which movie is running?</li>
+            <li onclick="chatResponse('greeting')">Say Hi to Achin!</li>
+        </ul>
+        <p id="chatbot-response"></p>
+    </div>
+
+    <script>
+        const ROWS = 5;
+        const COLS = 7;
+        let seats = Array.from({ length: ROWS }, () => Array(COLS).fill('O'));
+        let currentUser = '';
+        let pendingSeat = null;
+
+        // On initial load, show the login form
+        document.getElementById('register-form').classList.add('hidden');
+
+        function toggleAuthForms() {
+            document.getElementById('register-form').classList.toggle('hidden');
+            document.getElementById('login-form').classList.toggle('hidden');
+        }
+
+        function renderSeats() {
+            const grid = document.getElementById('seat-grid');
+            grid.innerHTML = '';
+            for (let i = 0; i < ROWS; i++) {
+                for (let j = 0; j < COLS; j++) {
+                    const seat = document.createElement('div');
+                    seat.className = 'seat';
+                    if (seats[i][j] === 'X') {
+                        seat.classList.add('booked');
+                        seat.textContent = 'X';
+                    } else {
+                        seat.textContent = 'O';
+                    }
+                    grid.appendChild(seat);
+                }
+            }
+        }
+
+        function showMessage(msg) {
+            document.getElementById('message-box').textContent = msg;
+        }
+
+        function bookSeat() {
+            const row = parseInt(document.getElementById('row').value) - 1;
+            const col = parseInt(document.getElementById('col').value) - 1;
+            if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
+                if (seats[row][col] === 'X') {
+                    showMessage("⛔ Seat already booked!");
+                } else {
+                    pendingSeat = [row, col];
+                    document.getElementById('payment-box').classList.remove('hidden');
+                    showMessage(`Proceed to payment for seat R${row + 1}C${col + 1}.`);
+                }
+            } else {
+                showMessage("⚠ Invalid seat position!");
+            }
+        }
+
+        function confirmPayment() {
+            if (pendingSeat) {
+                const [row, col] = pendingSeat;
+                seats[row][col] = 'X';
+                renderSeats();
+                // CORRECTED: Used backticks for template literal
+                showMessage(`🎉 Yay! Seat at Row ${row + 1}, Column ${col + 1} booked successfully!`);
+                document.getElementById('payment-box').classList.add('hidden');
+                pendingSeat = null;
+            }
+        }
+
+        function cancelSeat() {
+            const row = parseInt(document.getElementById('row').value) - 1;
+            const col = parseInt(document.getElementById('col').value) - 1;
+            if (row >= 0 && row < ROWS && col >= 0 && col < COLS) {
+                if (seats[row][col] === 'O') {
+                    showMessage("⚠ Seat is not booked, so it cannot be canceled!");
+                } else {
+                    seats[row][col] = 'O';
+                    renderSeats();
+                    // CORRECTED: Used backticks for template literal
+                    showMessage(`✅ Booking at Row ${row + 1}, Column ${col + 1} successfully cancelled.`);
+                }
+            } else {
+                showMessage("⚠ Invalid seat position!");
+            }
+        }
+
+        function register() {
+            const user = document.getElementById('reg-username').value.trim();
+            const pass = document.getElementById('reg-password').value.trim();
+            if (user && pass) {
+                // CORRECTED: Used backticks for template literal
+                if (localStorage.getItem(`user_${user}`)) {
+                    alert("Username already exists. Please login or choose a different username.");
+                    return;
+                }
+                localStorage.setItem(`user_${user}`, pass);
+                alert("Registration successful! Please login.");
+                document.getElementById('reg-username').value = '';
+                document.getElementById('reg-password').value = '';
+                toggleAuthForms(); // Switch to login form
+            } else {
+                alert("Please enter a valid username and password.");
+            }
+        }
+
+        function login() {
+            const user = document.getElementById('login-username').value.trim();
+            const pass = document.getElementById('login-password').value.trim();
+            // CORRECTED: Used backticks for template literal
+            const storedPass = localStorage.getItem(`user_${user}`);
+            if (storedPass && storedPass === pass) {
+                currentUser = user;
+                document.getElementById('auth-container').classList.add('hidden');
+                document.getElementById('app-container').classList.remove('hidden');
+                renderSeats();
+            } else {
+                alert("Invalid username or password!");
+            }
+        }
+
+        function logout() {
+            // CORRECTED: Used alert for a visible logout message and reset state
+            alert(`👋 You have been logged out. See you next time, ${currentUser}!`);
+            currentUser = '';
+            document.getElementById('app-container').classList.add('hidden');
+            document.getElementById('auth-container').classList.remove('hidden');
+            // Reset forms
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            showMessage(''); // Clear any old messages
+        }
+
+        function toggleChatbot() {
+            const bot = document.getElementById('chatbot');
+            bot.style.display = bot.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function chatResponse(query) {
+            let response = '';
+            if (query === 'seats') {
+                response = '📍 Booked seats: ';
+                let bookedList = [];
+                seats.forEach((row, i) => {
+                    row.forEach((seat, j) => {
+                        if (seat === 'X') bookedList.push(`R${i + 1}C${j + 1}`);
+                    });
+                });
+                response += bookedList.length > 0 ? bookedList.join(', ') : 'None yet!';
+            } else if (query === 'available') {
+                let count = 0;
+                seats.forEach(row => row.forEach(seat => {
+                    if (seat === 'O') count++;
+                }));
+                // CORRECTED: Used backticks for template literal
+                response = `🟢 ${count} seats are still available.`;
+            } else if (query === 'movies') {
+                response = '🎥 Currently showing: "The Code Master" in all screens.';
+            } else if (query === 'greeting') {
+                response = `👋 Hi there, ${currentUser}! I am Achin, your movie buddy. How can I help?`;
+            }
+            document.getElementById('chatbot-response').textContent = response;
+        }
+    </script>
+</body>
+
+</html>
