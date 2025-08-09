@@ -1,0 +1,135 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #ff69b4, #8a2be2);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+    backdrop-filter: blur(8px);
+    width: 90%;
+    max-width: 700px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+button,
+input[type="submit"] {
+    background: #ff69b4;
+    border: none;
+    padding: 10px 20px;
+    margin: 10px 5px;
+    border-radius: 10px;
+    font-size: 1rem;
+    color: white;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover,
+input[type="submit"]:hover {
+    background: #c71585;
+}
+
+input,
+select {
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    margin: 5px 0;
+    width: 100%;
+}
+
+.seating-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.seat {
+    background-color: #fff;
+    color: #333;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.seat.booked {
+    background-color: #8a2be2;
+    color: #fff;
+    cursor: not-allowed;
+}
+
+.hidden {
+    display: none;
+}
+
+.message {
+    font-size: 1.1rem;
+    margin-top: 10px;
+}
+
+.payment-box {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 1rem;
+    margin-top: 1rem;
+}
+
+#chatbot-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+#chatbot {
+    position: fixed;
+    bottom: 80px;
+    left: 20px;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border-radius: 15px;
+    padding: 1rem;
+    color: #fff;
+    display: none;
+    width: 250px;
+}
+
+#chatbot h4 {
+    margin-top: 0;
+}
+
+#chatbot ul {
+    list-style: none;
+    padding: 0;
+}
+
+#chatbot ul li {
+    cursor: pointer;
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+}
